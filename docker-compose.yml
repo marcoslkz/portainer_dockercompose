@@ -1,0 +1,30 @@
+# set .env vars: TZ, DOMAIN_NAME
+
+version: 3
+services:        
+  webserver:
+    image: portainer/portainer-ee:latest
+    container_name: "portainer"
+    restart: unless-stopped
+    environment:
+      - TZ
+      - DOMAIN_NAME
+      - SITE_PATH
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - 'portainer_data:/data'
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.moodle_${SITE_PATH}.loadbalancer.server.port=9000
+      - traefik.http.routers.moodle_${SITE_PATH}.tls.certresolver=letsencrypt
+      - traefik.frontend.entryPoints=http,https
+      - traefik.http.routers.moodle_${SITE_PATH}.rule=Host(`${DOMAIN_NAME}`)
+    networks: 
+      - proxy_default
+
+volumes:
+  portainer_data:
+  
+networks:
+  proxy_default:
+    external: true
